@@ -1,4 +1,5 @@
 import requests
+import xml.etree.ElementTree as ElementTree
 
 class Marantz:
     def __init__(self, ip):
@@ -28,3 +29,24 @@ class Marantz:
     
     def tv(self):
         self.changeInput('TV')
+
+    def getPowerState(self):
+        root = self.retrieveStateXml()
+        if root[2][0].text == 'ON':
+            return True
+        else:
+            return False
+
+    def getCurrentInput(self):
+        root = self.retrieveStateXml()
+        return root[17][0].text
+
+    def retrieveStateXml(self):
+        url = 'http://' + self.ip + '/goform/formMainZone_MainZoneXml.xml'
+        response = requests.get(url)
+        if response.status_code == 200:
+            root = ElementTree.fromstring(response.text)
+            return root
+        else:
+            print('Could not retrieve status xml.')
+            return response
