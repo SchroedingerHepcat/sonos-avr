@@ -32,24 +32,6 @@ def handleSonosZoneEvent(event, avr):
                                                                  auto_renew=True
                                                                     )
 
-def maintainZoneEventSubscription(subscription, sonos):
-    if not subscription:
-        pass
-    elif not subscription.is_subscribed or subscription.time_left <= 5:
-        try:
-            print("Unsubscribing to zone events")
-            subscription.unsubscribe()
-            soco.events.event_listener.stop()
-        except Exception as e:
-            print("Unsubscription failed")
-
-    try:
-
-
-def maintainPlaybackEventSubscription(subscription, sonos):
-    pass
-
-
 sonos = soco.SoCo('192.168.1.20')
 subscription = sonos.group.coordinator.avTransport.subscribe(auto_renew=True)
 groupSubscription = sonos.zoneGroupTopology.subscribe()
