@@ -77,7 +77,7 @@ while True:
         zoneEvent = None
         zoneEvent = groupSubscription.events.get(timeout=0.5)
         if zoneEvent is not None:
-            handleSonosZoneEvent(zoneEvent)
+            handleSonosZoneEvent(zoneEvent, avr)
 
         playbackEvent = None
         playbackEvent = subscription.events.get(timeout=0.5)
