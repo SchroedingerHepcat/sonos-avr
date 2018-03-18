@@ -5,7 +5,9 @@ import signal
 import soco
 import marantz
 import sys
+import logging
 
+logging.basicConfig(level="INFO")
 
 sonos = soco.SoCo('192.168.1.20')
 subscription = sonos.group.coordinator.avTransport.subscribe(auto_renew=True)
@@ -15,7 +17,7 @@ avr = marantz.Marantz('192.168.1.53')
 lastState=''
 
 def shutdown(signal, frame):
-    print('Shutting down...')
+    logging.info('shutdown(): Shutting down...')
     subscription.unsubscribe()
     groupSubscription.unsubscribe()
     sys.exit(0)
@@ -23,56 +25,64 @@ def shutdown(signal, frame):
 signal.signal(signal.SIGINT, shutdown)
 
 while True:
+    logging.debug("main(): Main loop: Start...")
     # Check zone event subscription
     if not groupSubscription.is_subscribed or groupSubscription.time_left <= 5:
         try:
-            print("Unsubscribing to zone events")
+            logging.info("Unsubscribing to zone events")
             groupSubscription.unsubscribe()
             soco.events.event_listener.stop()
         except Exception as e:
-            print("Unsubscription to zone events failed")
+            logging.info("Unsubscription to zone events failed")
 
         try:
             groupSubscription = sonos.zoneGroupTopology.subscribe(
                                                                 auto_renew=True
                                                                  )
         except Exception as e:
-            print('Zone event subscription failed.')
+            logging.warning('Zone event subscription failed.')
             time.sleep(10)
 
     # Check playback event subscription
     if not subscription.is_subscribed or subscription.time_left <= 5:
         try:
-            print("Unsubscribing to playback events")
+            logging.info("Unsubscribing to playback events")
             subscription.unsubscribe()
             soco.events.event_listener.stop()
         except Exception as e:
-            print("Unsubscription to playback events failed")
+            logging.info("Unsubscription to playback events failed")
 
         try:
             subscription = sonos.group.coordinator.avTransport.subscribe(
                                                                 auto_renew=True
                                                                         )
         except Exception as e:
-            print('Playback event subscription failed.')
+            logging.warning('Playback event subscription failed.')
             time.sleep(10)
 
     try:
+        logging.debug("Checking zone events...")
         zoneEvent = None
         zoneEvent = groupSubscription.events.get(timeout=0.5)
         if zoneEvent is not None:
+            logging.info("Zone event found.")
             if subscription.service.soco.uid != sonos.group.coordinator.uid:
+                logging.info("Uid of coordinator has changed. Resubscribing...")
                 subscription.unsubscribe()
                 subscription = sonos.group.coordinator.avTransport.subscribe(
                                                                 auto_renew=True
                                                                             )
+    except queue.Empty:
+        pass
 
+    try:
+        logging.debug("Checking playback events...")
         playEvent = None
         playEvent = subscription.events.get(timeout=0.5)
         if playEvent is not None:
-            print('Playback event:',
-                  playEvent.variables['transport_state']
-                 )
+            logging.info('Playback event: %s',
+                         playEvent.variables['transport_state']
+                        )
             if playEvent.variables['transport_state'] == 'PLAYING':
                 lastState = playEvent.variables['transport_state']
                 avr.cd()
@@ -82,9 +92,8 @@ while True:
             elif playEvent.variables['transport_state'] == 'PAUSED_PLAYBACK':
                 lastState = playEvent.variables['transport_state']
                 avr.tv()
+            elif playEvent.variables['transport_state'] == 'STOPPED':
+                lastState = playEvent.variables['transport_state']
+                avr.tv()
     except queue.Empty:
         pass
-    except KeyboardInterrupt:
-        subscription.unsubscribe()
-        soco.events.event_listener.stop()
-        break
