@@ -4,6 +4,7 @@ import queue
 import signal
 import soco
 import marantz
+import sys
 
 
 sonos = soco.SoCo('192.168.1.20')
