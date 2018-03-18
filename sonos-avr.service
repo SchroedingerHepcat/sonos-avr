@@ -1,0 +1,9 @@
+[Unit]
+Description=Sonos AVR Controller
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/sonos-avr
+ExecStart=/opt/sonos-avr/sonos-avr.py
+Restart=always
