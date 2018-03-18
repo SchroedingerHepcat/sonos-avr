@@ -67,20 +67,20 @@ while True:
                                                                 auto_renew=True
                                                                             )
 
-        playbackEvent = None
-        playbackEvent = subscription.events.get(timeout=0.5)
-        if playbackEvent is not None:
+        playEvent = None
+        playEvent = subscription.events.get(timeout=0.5)
+        if playEvent is not None:
             print('Playback event:',
-                  playbackEvent.variables['transport_state']
+                  playEvent.variables['transport_state']
                  )
-            if playbackEvent.variables['transport_state'] == 'PLAYING':
-                lastState = playbackEvent.variables['transport_state']
+            if playEvent.variables['transport_state'] == 'PLAYING':
+                lastState = playEvent.variables['transport_state']
                 avr.cd()
-            elif event.variables['transport_state'] == 'TRANSITIONING':
+            elif playEvent.variables['transport_state'] == 'TRANSITIONING':
                 if lastState == 'PAUSED_PLAYBACK':
                     avr.cd()
-            elif event.variables['transport_state'] == 'PAUSED_PLAYBACK':
-                lastState = playbackEvent.variables['transport_state']
+            elif playEvent.variables['transport_state'] == 'PAUSED_PLAYBACK':
+                lastState = playEvent.variables['transport_state']
                 avr.tv()
     except queue.Empty:
         pass
