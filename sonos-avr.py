@@ -18,7 +18,10 @@ signal.signal(signal.SIGINT, shutdown)
 
 
 # Set a log level and file
-logging.basicConfig(filename="sonos-avr.log", level="INFO")
+logging.basicConfig(filename="sonos-avr.log"
+                   ,level="INFO"
+                   ,format="%(asctime)s - %(levelname)s - %(name)s: %(message)s"
+                   )
 
 # Connect to the desired Sonos Connect (i.e. the one connected to the AVR)
 sonos = soco.SoCo('192.168.1.20')
